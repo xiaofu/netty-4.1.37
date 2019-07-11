@@ -281,9 +281,9 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             } finally {
                 if (cumulation != null && !cumulation.isReadable()) {
                     numReads = 0;
-                    cumulation.release();
+                    cumulation.release();//这里有释放buffer，子类解码器不再考虑此问题
                     cumulation = null;
-                } else if (++ numReads >= discardAfterReads) {
+                } else if (++ numReads >= discardAfterReads) {//读了很多次了，还没有读完就要抛弃数据 ？那不是丢数据 了？
                     // We did enough reads already try to discard some bytes so we not risk to see a OOME.
                     // See https://github.com/netty/netty/issues/4275
                     numReads = 0;
@@ -291,9 +291,9 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 }
 
                 int size = out.size();
-                decodeWasNull = !out.insertSinceRecycled();
-                fireChannelRead(ctx, out, size);
-                out.recycle();
+                decodeWasNull = !out.insertSinceRecycled();//如果列表里没有数据，当前为true，否则为false
+                fireChannelRead(ctx, out, size);//触发后继handler的读
+                out.recycle();//释放列表资源 
             }
         } else {
             ctx.fireChannelRead(msg);
@@ -420,7 +420,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             while (in.isReadable()) {
                 int outSize = out.size();
 
-                if (outSize > 0) {
+                if (outSize > 0) {//已经输出消息了，触发后续的handler读
                     fireChannelRead(ctx, out, outSize);
                     out.clear();
 
@@ -445,15 +445,15 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
                 if (ctx.isRemoved()) {
                     break;
                 }
-
+                //解码前后的输出消息数量没有变化 
                 if (outSize == out.size()) {
-                    if (oldInputLength == in.readableBytes()) {
+                    if (oldInputLength == in.readableBytes()) {//子类解码器没有读buffer，说明可能字节数不够达到解码
                         break;
                     } else {
-                        continue;
+                        continue;//buffer有消耗，继续循环调用解码
                     }
                 }
-
+                //子类解码器不能不消耗任何字节而输出有消息
                 if (oldInputLength == in.readableBytes()) {
                     throw new DecoderException(
                             StringUtil.simpleClassName(getClass()) +
