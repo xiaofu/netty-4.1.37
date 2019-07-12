@@ -100,6 +100,7 @@ import java.util.List;
  * <a href="http://en.wikipedia.org/wiki/Internet_Content_Adaptation_Protocol">ICAP</a>.
  * To implement the decoder of such a derived protocol, extend this class and
  * implement all abstract methods properly.
+ * <p>HttpConent及子类中需要被显示释放资源，因为里面的bytebuf增加了一次引用</p>
  */
 public abstract class HttpObjectDecoder extends ByteToMessageDecoder {
     private static final String EMPTY_VALUE = "";
@@ -293,10 +294,10 @@ public abstract class HttpObjectDecoder extends ByteToMessageDecoder {
             if (toRead > chunkSize) {
                 toRead = (int) chunkSize;
             }
-            ByteBuf content = buffer.readRetainedSlice(toRead);
+            ByteBuf content = buffer.readRetainedSlice(toRead);//产生一次引用，后面的handler需要释放一次
             chunkSize -= toRead;
 
-            if (chunkSize == 0) {
+            if (chunkSize == 0) {//刚好一次读完整个内容
                 // Read all content.
                 out.add(new DefaultLastHttpContent(content, validateHeaders));
                 resetNow();
@@ -341,7 +342,7 @@ public abstract class HttpObjectDecoder extends ByteToMessageDecoder {
             if (chunkSize != 0) {
                 return;
             }
-            currentState = State.READ_CHUNK_DELIMITER;
+            currentState = State.READ_CHUNK_DELIMITER;//读下一个chunk
             // fall-through
         }
         case READ_CHUNK_DELIMITER: {
@@ -358,7 +359,7 @@ public abstract class HttpObjectDecoder extends ByteToMessageDecoder {
             return;
         }
         case READ_CHUNK_FOOTER: try {
-            LastHttpContent trailer = readTrailingHeaders(buffer);
+            LastHttpContent trailer = readTrailingHeaders(buffer);//chunk读取完毕
             if (trailer == null) {
                 return;
             }

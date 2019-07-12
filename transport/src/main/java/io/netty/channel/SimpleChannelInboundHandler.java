@@ -44,6 +44,7 @@ import io.netty.util.internal.TypeParameterMatcher;
  * Please keep in mind that {@link #channelRead0(ChannelHandlerContext, I)} will be renamed to
  * {@code messageReceived(ChannelHandlerContext, I)} in 5.0.
  * </p>
+ * <p>实现了此类的子类不需要显示释放资源，因为已经帮助释放了</p>
  */
 public abstract class SimpleChannelInboundHandler<I> extends ChannelInboundHandlerAdapter {
 

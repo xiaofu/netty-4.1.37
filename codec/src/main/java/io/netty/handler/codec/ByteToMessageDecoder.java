@@ -68,6 +68,7 @@ import java.util.List;
  * Some methods such as {@link ByteBuf#readBytes(int)} will cause a memory leak if the returned buffer
  * is not released or added to the <tt>out</tt> {@link List}. Use derived buffers like {@link ByteBuf#readSlice(int)}
  * to avoid leaking memory.
+ * <p>子类实现decode方法时不需要释放bytebuf，因为父类已经释放了</p>
  */
 public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter {
 

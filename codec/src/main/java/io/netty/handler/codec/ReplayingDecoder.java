@@ -261,6 +261,7 @@ import java.util.List;
  *         ctx.pipeline().remove(this);
  *     }
  * </pre>
+ * <p>子类实现decode方法时不需要释放bytebuf，因为父类已经释放了</p>
  * @param <S>
  *        the state type which is usually an {@link Enum}; use {@link Void} if state management is
  *        unused
