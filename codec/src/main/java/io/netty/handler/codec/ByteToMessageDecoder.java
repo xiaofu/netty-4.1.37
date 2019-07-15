@@ -282,7 +282,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
             } finally {
                 if (cumulation != null && !cumulation.isReadable()) {
                     numReads = 0;
-                    cumulation.release();//这里有释放buffer，子类解码器不再考虑此问题
+                    cumulation.release();//这里有释放buffer，子类解码器不再考虑此问题。若是decode里面只是简单的将ByteBuf封闭到对象里面去，那么必须将buffer retain。
                     cumulation = null;
                 } else if (++ numReads >= discardAfterReads) {//读了很多次了，还没有读完就要抛弃数据 ？那不是丢数据 了？
                     // We did enough reads already try to discard some bytes so we not risk to see a OOME.
